@@ -11,7 +11,7 @@
        <div class="mc"></div>
     </div>
   <div class="hello">
-    
+
       <div class="top">
            <div class="go-prev" @click="backclick()">
            <i class="go-prev-left el-icon-arrow-left"></i>
@@ -65,9 +65,9 @@
   </div>
         <div class="main">
              <div class="main-text">{{title}}</div>
-             <div class="main-list" v-for="(ite,ind) in answer" :key="ind" 
+             <div class="main-list" v-for="(ite,ind) in answer" :key="ind"
              v-bind:class="{active:ind==isActive}"
-             > 
+             >
                  <p class="main-title" v-bind:class="{active1:ind==isActive1}" @click="check(ite,ind)">{{ite}}</p>
                  <img class="answersure" v-bind:class="{sureactive:ind==sureisActive}" src="../assets/answer_icon_eorrect_sel@2x.png"  alt="">
                  <img class="answerfalse" v-bind:class="{falseactive:ind==isfalseActive}" src="../assets/answer_icon_error_sel@2x.png" alt="">
@@ -150,7 +150,7 @@ export default {
     this.model = this._model();
     this.version = this._version();
      this.$bridge.registerhandler('lookgetremedyfinsh', (data, responseCallback) => {
-          // console.log('lookgetTrainingfinsh')  
+          // console.log('lookgetTrainingfinsh') 
           // console.log(this.advertising = false)
           if (data==1){
            this.wrong = false
@@ -158,8 +158,8 @@ export default {
            //this.add();
            //this.ggtab();
          //  this.move();
-          } 
-          
+          }
+
            responseCallback(data)
 
         })
@@ -168,7 +168,7 @@ export default {
   mounted () {
      this.djs();
      this.numinfo();
-     
+
     //  this.animate()
  },
   methods: {
@@ -203,7 +203,7 @@ export default {
       this.giveupstate = data
       this.fail = false
       this.wrongshow = false
-      
+
       // this.seconds = 10
       // this.animate();
       //this.check();
@@ -222,6 +222,7 @@ export default {
        return 'numid'+index
      },
      djs:function(){
+      // 挑战答题倒计时6秒
        this.timerNum = 6;
        let timer = setInterval(() => {
               if (this.timerNum > 0) {
@@ -229,7 +230,9 @@ export default {
               } else {
                 this.showmc = false
                 clearInterval(timer);
+                // 6 秒之后获取问题信息
                   this.question();
+
               //  this.animate();
               }
             }, 1000);
@@ -238,7 +241,7 @@ export default {
       // console.log(this.timer,1111)
      // console.log(this.seconds,456);
       let _this = this;
-      this.runTime = setInterval(() => {    
+      this.runTime = setInterval(() => {
         if(_this.percentage > 0){
           //  _this.seconds--;
            _this.percentage = _this.percentage - 1/10;
@@ -249,7 +252,7 @@ export default {
         // }, 3000)
          _this.djsover();
          _this.percentage = 100;
-           
+
         }
       //  _this.percentage = _this.percentage - 1/100;
       //   if (_this.percentage <= 0) {
@@ -258,14 +261,15 @@ export default {
       //     clearInterval(_this.runTime)
       //    _this.djsover();
       //    _this.percentage = 100;
-      //     return 
+      //     return
       //   }
       }, 10)
     },
+    // 倒计时结束 自动回答问题
     djsover:function(){
       this.mcshow = true;
       this.$axios.post("/consumer/intelligence_question/answer",{
-      
+
         questionId:this.questionId,
         answer:-1,
         status:1,
@@ -292,9 +296,9 @@ export default {
         let _len = this.obj.length
         if (_len == 1){
            this.failsanswer = true
-          
+
         } else {
-           
+
          if (advertising == 0 ){
          this.isActive = rightAnswer
          this.sureisActive = rightAnswer
@@ -309,7 +313,7 @@ export default {
         }, 2000)
       }
       }
-        
+
       } else {
       //  if (remedyNum == 0 && this.index <= 0){
       //     this.failsanswer = true
@@ -331,14 +335,15 @@ export default {
      // }
     }
       }
-      
-      
-     
-    
+
+
+
+
     })
     .catch(err=>{
     })
    },
+    // 自己回答问题
     check: function(ite,ind){
     //  console.log(ite,ind,333333)
      // let obj = []
@@ -373,7 +378,7 @@ export default {
         } else {
           this.$router.push({ path: 'cross', query: { types: this.types}})
         }
-        
+
       } else {
         if(challengeStatus == 1){
         this.obj.push(challengeStatus)
@@ -393,13 +398,13 @@ export default {
            } else {
             this.question()
            //this.seconds = 10
-          //  this.animate();      
+          //  this.animate();
            }
            this.wrong = false
            this.countdowndjs = true
-           
+
         }, 2000)
-        
+
       } else {
 
         this.isActive = ind
@@ -414,7 +419,7 @@ export default {
           //  this.animate();
         }, 500)
       }
-      } 
+      }
       else {
         if (advertising == 0 ){
          this.isActive1 = ind
@@ -428,9 +433,9 @@ export default {
            this.advertising = 0
            this.wrong = false
            this.countdowndjs = true
-           
+
         }, 2000)
-        
+
       } else {
         this.isActive = ind
         this.sureisActive = ind
@@ -444,7 +449,7 @@ export default {
           //  this.animate();
         }, 2000)
        }
-        
+
       //   if(remedyNum == 0 && this.index == 0){
       //    this.failsanswer = true
       // } else {
@@ -460,9 +465,9 @@ export default {
       //      this.advertising = 0
       //      this.wrong = false
       //      this.countdowndjs = true
-           
+
       //   }, 2000)
-        
+
       // } else {
       //   this.isActive = ind
       //   this.sureisActive = ind
@@ -480,17 +485,17 @@ export default {
     }
 
       }
-      
+
       //  console.log(res)
     })
     .catch(err=>{
     })
-    
-      
+
+
     },
     question:function(){
       this.mcshow = false;
-      this.numinfo();
+      // this.numinfo();
       this.percentage = 100
     //this.seconds = 10
     this.isActive1 = '-1'
@@ -515,10 +520,11 @@ export default {
         let retJSON = JSON.parse(ret)
         //console.log(res,ret,retJSON)
          _this.answer = retJSON
+        _this.numinfo();
         _this.animate();
     })
     // },()=>{
-      
+
     //  //console.log(res,8)
     //    _this.title = res.data.data.title
     //    _this.questionId = res.data.data.id
@@ -551,11 +557,11 @@ this.$axios.get("/consumer/intelligence_question/answer_num_info",{
       this.giveupanswer = true
     }
 
-  
+
    },
- 
+
   watch: {
-    
+
  },
     computed: {
      radius() {
@@ -634,7 +640,7 @@ body{
     margin: 6px 0 0 6px;
     float: left;
 }
-.name{   
+.name{
     margin: 0;
     height: 50px;
     font-size: 36px;
@@ -665,7 +671,7 @@ line-height: 33px;
 
 }
 .nownum{
-    
+
 height: 45px;
 font-size: 32px;
 font-family: PingFang-SC-Bold, PingFang-SC;
@@ -686,7 +692,7 @@ text-align: center;
     margin-top: 105px;
 }
 .main-text{
-    
+
     height: 45px;
     font-size: 32px;
     font-family: PingFang-SC-Bold, PingFang-SC;
