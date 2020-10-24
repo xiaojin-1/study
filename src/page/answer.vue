@@ -282,7 +282,7 @@ export default {
       let rightAnswer = res.data.data.rightAnswer
       let challengeStatus = res.data.data.challengeStatus //挑战成功或失败
       this.index = res.data.data.answerNum   //剩余问题次数
-      let fineStatus = res.data.data.answerNum //是否获得场次奖励
+      let fineStatus = res.data.data.fineStatus //是否获得场次奖励
       if (this.index == 0){
       if (fineStatus == 1){
           //this.
@@ -368,7 +368,7 @@ export default {
       let rightAnswer = res.data.data.rightAnswer  //正确答案
       let challengeStatus = res.data.data.challengeStatus //挑战成功或失败
       this.index = res.data.data.answerNum   //  剩余题目
-      let fineStatus = res.data.data.answerNum //是否获得场次奖励
+      let fineStatus = res.data.data.fineStatus //是否获得场次奖励
       if (this.index == 0){
 
         console.log(fineStatus,11)
