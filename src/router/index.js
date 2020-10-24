@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
+import white from '@/page/white'
 import index from '@/page/index'
 import ranking from '@/page/ranking'
 import answer from '@/page/answer'
@@ -9,13 +10,15 @@ import cross from '@/components/answer/cross'
 Vue.use(Router)
 
 export default new Router({
+  mode:'history',
   routes: [
+   
     {
       path: '/',
       name: 'index',
       component: index,
       meta: {
-      
+      //  keepAlive:true,
       }
     },
     {

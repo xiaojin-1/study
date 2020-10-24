@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
-      <div class="top">
-           <div class="go-prev" onclick="history.back(-1);">
+      <div class="top" >
+           <div class="go-prev" @click="backclick()" >
            <i class="go-prev-left el-icon-arrow-left"></i>
            </div>
           <span class="text">{{ msg }}</span>
@@ -10,13 +10,13 @@
  <div class="information">
          <div class="information-main">
             <div class="information-tx">
-              <img :src=" 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+headimg" alt="" class="tx">
+              <img :src="headimg" alt="" class="tx">
             </div>
             <div class="information-name">
                 <p class="name">{{name}}</p>
                 <div class="balance">
                    <img class="balance-icon" src="../assets/answer_icon_money_default@2x.png" alt="">
-                   <p class="balance-money">{{money}}元</p>
+                   <p class="balance-money" >{{money}}元</p>
                    <i class="right-icon el-icon-arrow-right"></i>
                 </div>
                
@@ -26,7 +26,8 @@
                     <p class="num">{{nownum}}/{{connum}}</p>
                 </div>
                 <div class="time">
-                    <p class="djs">{{minutes}}:{{seconds}}分钟</p>
+                    <p class="djs" >{{minutes}}:{{seconds}}分钟</p>
+                     <!-- <p class="djs" v-else>体力值已满</p> -->
                 </div>
             </div>
          </div>
@@ -34,7 +35,9 @@
       <div class="block">
         <el-carousel trigger="click" height="150px">
             <el-carousel-item v-for="(item,index) in pics" :key="index">
-                <img :src="item.pic" alt="" class="">
+              <!-- <a :href="item.href"> -->
+                <img :src=" 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+item.image" alt="" class="">
+              <!-- </a> -->
             </el-carousel-item>
         </el-carousel>
       </div>
@@ -56,7 +59,7 @@
          <div class="tab-but" @click="advertis()" v-if="state == 1 && isSignUp == 0">
            <p class="tab-but-title" >{{addtext}}</p>
          </div>
-         <div class="tab-but" v-if="state >= 2 && isSignUp == 1 && isFinish == 0">
+         <div class="tab-but" v-if="state >= 2 && isSignUp == 1 && isFinish == 0 && finishChallenge==0">
            <router-link  :to="{path:'/answer',query: {types: type}}" class="answer-link">
               <p class="tab-but-title">{{starttext}}</p>
            </router-link>
@@ -64,17 +67,36 @@
           <div class="tab-but tab-but1" v-if="state == 1 && isSignUp == 1">
            <p class="tab-but-title">{{notstarttext}}</p>
          </div>
-          <div class="tab-but" v-if="state >= 2 && isSignUp == 0">  
+          <div class="tab-but" v-if="state >= 2 && isSignUp == 0 &&isFinish == 0 && finishChallenge==1">  
            <p class="tab-but-title">{{nowstarttext}}</p>
          </div>
-          <div class="tab-but tab-but2" @click="advertisgrab()" v-if="state == 3 && isSignUp == 1 &&isFinish == 1">
+         <div class="tab-but" v-if="state >= 2 && isSignUp == 1 &&isFinish == 0 && finishChallenge==1">  
+           <p class="tab-but-title">{{nowstarttext}}</p>
+         </div>
+          <div class="tab-but" v-if="state >= 2 && isSignUp == 0 &&isFinish == 1 && finishChallenge==1">  
+           <p class="tab-but-title">{{nowstarttext}}</p>
+         </div>
+         <div class="tab-but" v-if="state >= 2 && isSignUp == 0 &&isFinish == 1 && finishChallenge==0">  
+           <p class="tab-but-title">{{nowstarttext}}</p>
+         </div>
+         <div class="tab-but" v-if="state >= 2 && isSignUp == 0 &&isFinish == 0 && finishChallenge==0">  
+           <p class="tab-but-title">{{nowstarttext}}</p>
+         </div>
+          <div class="tab-but tab-but2" @click="advertisgrab()" v-if="state == 3 && isSignUp == 1 &&isFinish == 1 &&commandStatus == 0">
            <p class="tab-but-title">{{grabstarttext}}</p>
          </div>
+         <div class="tab-but tab-but2"  v-if="state == 3 && isSignUp == 1 &&isFinish == 1&&commandStatus == 1">
+           <p class="tab-but-title">{{grablqtext}}</p>
+         </div>
          <div  >
+           <div class="answer-djs-left" style="width:165px;text-align:center;float:left">
               <p class="answer-money">
                     {{ itmmoney }}元
               </p>
               <p class="award-pool-amount">奖池预估</p>
+
+           </div>
+           <div class="answer-djs-right" style="text-align:center;float:right;">
               <div class="answer-djs" v-if="state == 1">
                  <p>{{hr}}:</p><p>{{min}}:</p><p>{{sec}}</p>
               </div>
@@ -82,6 +104,8 @@
                  <p>进行中</p>
               </div>
               <p class="answer-djs-start">本场开始倒计时</p>
+           </div>
+              
          </div>
             	
        </div>
@@ -97,7 +121,7 @@
              <img class="foot-right-top" src="../assets/answer_icon_ranking_default@2x.png" alt="">
            </router-link>
             
-            <img class="foot-right-bottom" src="../assets/answer_icon_task_default@2x.png" alt="">
+            <img class="foot-right-bottom" @click="taskclick()" src="../assets/answer_icon_task_default@2x.png" alt="">
          </div>
        </div>
       </div>
@@ -126,6 +150,11 @@ export default {
   },
   data () {
     return {
+      djsover:'true',
+      token:'',
+      userCode:'',
+      model:'',
+      version:'',
       showadvertising:false,
       advertising:false,
       showgrabopen:false,
@@ -142,12 +171,15 @@ export default {
       minutes: '01',
       seconds: '01',
       cur:0,
+      finishChallenge:'',
       itmmoney:'100.10',
       addtext:'参与答题',
       starttext:'开始答题',
       notstarttext:'暂未开始',
       nowstarttext:'进行中',
       grabstarttext:'红包口令开启',
+      grablqtext:'已领取',
+      commandStatus:'',
       hr:'',
       min:'',
       sec:'',
@@ -156,13 +188,7 @@ export default {
       isSignUp:'',   //是否报名
       isFinish:'',   //是否有红包
       index: 1,     //报名第几场的答题
-      pics:[{
-        pic:require('../assets/mao.jpg')
-      },
-      {
-       pic:require('../assets/mao.jpg')
-      }
-      ],
+      pics:[ ],
       title:[
         {num:10},
         {num:20},
@@ -171,59 +197,67 @@ export default {
     }
   },
   created () {
-    
-     this.$axios.get("/consumer/intelligence/main_info",{
-       headers: {
-        token: '8993a1b041d54563af134e0493746708'
-      }
-     })
-    .then(res=>{
-        this.headimg = res.data.data.head
-        this.name = res.data.data.name
-        this.money = res.data.data.money
-        this.nownum = res.data.data.power
-        let secseconds = res.data.data.seconds
-        let min = parseInt(secseconds / 60 % 60)
-        let sec = parseInt(secseconds % 60)
-        min = min > 9 ? min : '0' + min
-        sec = sec > 9 ? sec : '0' + sec
-        if (secseconds == -1){
-          this.minutes = '00'
-          this.seconds = '00'
-        } else {
-          this.minutes = min
-          this.seconds =sec
-        }
-       
-        //console.log(min,sec,res)
-    })
-    .catch(err=>{
-
-      // console.log(err)
-
-    })
-     // this.open()
-    // console.log(areaCode.code_cn)
-  //  let codeData
-//    codeData = JSON.parse(areaCode.code_cn);
-   // console.log(JSON.parse(areaCode.code_cn))
-    // Object.keys(codeData).forEach((key, index) => {
-    //   this.options.push({
-    //     value: '',
-    //     label: ''
-    //   });
-    //   this.options[index].value = key
-    //   this.options[index].label = codeData[key]
-    // });
-   // console.log(this.options)
+     
+       // this.token = localStorage.getItem('_token')
+       // alert(this.token+'2222')
+      //this.token = token
+     
+ 
+   this.token = this._token();
+   this.userCode = this._userCode();
+   this.model = this._model();
+   this.version = this._version();
+   
+      
+   
+ 
+  
   },
   mounted () {
+    this.lbt();
+    let token = ''
+    this.$bridge.registerhandler('lookpromptfinsh', (data, responseCallback) => {
+          // console.log('lookgetTrainingfinsh')  
+          // console.log(this.advertising = false)
+          if (data==1){
+           this.advertising = false
+           this.numinfo();
+           this.add();
+           this.ggtab();
+           this.move();
+          } 
+          
+           responseCallback(data)
+
+        })
+     this.$bridge.registerhandler('setupWebViewtoken', (data, responseCallback) => {
+          // console.log('lookgetTrainingfinsh')  
+          // console.log(this.advertising = false)
+         // alert(data)
+          var dataJSON = JSON.parse(data)
+      //    alert(dataJSON.token)
+          token  = dataJSON.token
+          localStorage.setItem('_token',token)
+        //  alert(token+'1111s')
+           this.numinfo();
+           //this.add();
+           this.atb0();
+          // this.tab(cur,index,token)
+           responseCallback(data)
+
+        })
+     this.numinfo();
       this.add();
-      this.atb0();
-      console.log(this.index)
+   // this.numinfo();
+   // this.add();
+     this.atb0();
+      //this.$router.go(0)
+     // console.log(this.index)
      // console.log(this.time)
       //   this.countdown();
-
+      // if (this.token == null){
+      //   location.reload()
+      // }
       
      // this.state = this.tabMain[0].state;
      // this.countdown();
@@ -231,15 +265,25 @@ export default {
      
     },
   methods: {
+  //   getDataFromNative(params) {
+  //   //params: 原生调用Vue时传值（params）给Vue
+  //   console.log("得到原生传值结果:" + params);
+  //   var dic = {
+  //       'name': "vicky"
+  //   };
+  //   return dic; //回调给原生，可写可不写
+  // },
+
     parentEvent(data){
       this.showadvertising = data
       this.advertising = data
-      this.atb0();
+      this.ggtab();
      // this.state = '3'
     },
     parentgrab(data){
       this.showgrabopen = false
       this.grabopen = false
+      this.ggtab();
     //  this.state = '5'
     },
     parentrule:function(){
@@ -267,33 +311,71 @@ export default {
           } else if (_this.seconds === '00' && _this.minutes === '00') {
             _this.seconds = 0
             _this.seconds = _this.seconds > 9 ? _this.seconds : '0' + _this.seconds
+         //  _this.djsover = false
+           _this.numinfo();
            clearInterval(time)
+           
           } 
         }, 1000)
       },
 
    atb0:function(){
+     // alert(localStorage.getItem('_token'))
       this.$axios.get("/consumer/intelligence/sessions_info",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: localStorage.getItem('_token') //localStorage.getItem('_token') //'cc349aa7d6c748ffaf229cac4f96c976' //
       },
       params:{
         type:1
       }
      })
     .then(res=>{
+     // console.log(res,2222)
       let state = res.data.data.nowActivityCycle
-      
+      this.finishChallenge = res.data.data.finishChallenge
+      this.commandStatus = res.data.data.commandStatus
       this.itmmoney = res.data.data.money
       this.time = res.data.data.startTime *1000
       this.state = res.data.data.nowActivityCycle
       this.isSignUp = res.data.data.isSignUp
-      this.isFinish = res.data.data.isFinish
+      this.isFinish =res.data.data.isFinish
       if (this.state == '1' || this.state == 1) {
          //this.timethis.time = this.tabMain[0].time;
          this.countdown();
       }
-      console.log(this.isSignUp,res,1)
+     // console.log(this.isSignUp,res,1)
+    })
+    .catch(err=>{
+
+       console.log(err)
+
+    })
+   },
+   ggtab:function(){
+     // alert(this.type)
+      this.$axios.get("/consumer/intelligence/sessions_info",{
+       headers: {
+        token: localStorage.getItem('_token') //localStorage.getItem('_token') //'cc349aa7d6c748ffaf229cac4f96c976' //
+      },
+      params:{
+        type:this.type
+      }
+     })
+    .then(res=>{
+     // console.log(res,2222)
+      let state = res.data.data.nowActivityCycle
+      this.finishChallenge = res.data.data.finishChallenge
+      this.commandStatus = res.data.data.commandStatus
+      this.itmmoney = res.data.data.money
+      this.time = res.data.data.startTime *1000
+      this.state = res.data.data.nowActivityCycle
+      this.isSignUp = res.data.data.isSignUp
+      this.isFinish =res.data.data.isFinish
+      if (this.state == '1' || this.state == 1) {
+         //this.timethis.time = this.tabMain[0].time;
+         this.countdown();
+      }
+     // console.log(this.isSignUp,res,1)
     })
     .catch(err=>{
 
@@ -306,24 +388,30 @@ export default {
     // console.log(cur,index)
      let types = index +1
      this.index = types
-     //console.log(this.index,33)
+   //  console.log(this.index,33)
      this.$axios.get("/consumer/intelligence/sessions_info",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token:localStorage.getItem('_token') // localStorage.getItem('_token') //'cc349aa7d6c748ffaf229cac4f96c976'//
       },
       params:{
         type:types
       }
      })
     .then(res=>{
+      
       let state = res.data.data.nowActivityCycle
       //this.state = state
+     
+      this.finishChallenge = res.data.data.finishChallenge
+      this.commandStatus = res.data.data.commandStatus
       this.itmmoney = res.data.data.money
-      this.state = res.data.data.nowActivityCycle
-      this.isSignUp = res.data.data.isSignUp
+      this.state =res.data.data.nowActivityCycle
+      this.isSignUp =res.data.data.isSignUp
       this.isFinish = res.data.data.isFinish
+    //   alert(this.finishChallenge,3333)
+   //   alert(this.state+this.isSignUp+this.isFinish)
       //this.time = res.data.data.startTime
-        console.log(res)
+      //  console.log(res)
     })
     .catch(err=>{
 
@@ -376,7 +464,83 @@ export default {
       this.showruleopen = true
       this.ruleopen = true
   },
-  
+  numinfo:function(){
+  //  alert(localStorage.getItem('_token'))
+this.$axios.get("/consumer/intelligence/main_info",{
+       headers: {
+        token: localStorage.getItem('_token') // localStorage.getItem('_token')
+      }
+     })
+    .then(res=>{
+     // alert(res.data.data.head)
+        let headimg = res.data.data.head
+        localStorage.setItem('_headimg',headimg)
+        localStorage.getItem('_headimg')
+        this.headimg = 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+ localStorage.getItem('_headimg')  //res.data.data.head
+        
+        this.name = res.data.data.name
+        this.money = res.data.data.money
+        this.nownum = res.data.data.power
+        let secseconds = res.data.data.seconds
+        let min = parseInt(secseconds / 60 % 60)
+        let sec = parseInt(secseconds % 60)
+        min = min > 9 ? min : '0' + min
+        sec = sec > 9 ? sec : '0' + sec
+        if (secseconds == -1){
+          this.minutes = '00'
+          this.seconds = '00'
+        } else {
+          this.minutes = min
+          this.seconds =sec
+        }
+       
+        //console.log(min,sec,res)
+    })
+    .catch(err=>{
+
+      // console.log(err)
+
+    })
+  },
+  lbt:function(){
+    this.$axios.get("/consumer/missionLink/missionLinkList",{
+      params:{
+        category:2
+      }
+     })
+    .then(res=>{
+    //  console.log(res,888888)
+        this.pics = res.data.data
+       
+        //console.log(min,sec,res)
+    })
+    .catch(err=>{
+
+      // console.log(err)
+
+    })
+  },
+  taskclick:function(){
+      this.$bridge.callhandler('gettaskProfit', (data) => {
+         // alert(321)
+  // 处理返回数据
+        })
+  },
+    backclick:function(){
+       this.$bridge.callhandler('getbackProfit', (data) => {
+         // alert(321)
+  // 处理返回数据
+        })
+    
+    },
+       stop(){//禁止滑动限制
+  document.body.style.overflow='hidden';
+
+},
+move(){//取消滑动限制
+document.body.style.overflow='';
+
+   },
   },
   watch: {
       second: {
@@ -491,10 +655,12 @@ body{
     float: left;
 }
 .balance-money{
+  margin: 0;
     float: left;
     color: #333;
     font-size: 26px;
-    margin: 8px 0 0 0;
+      height: 48px;
+      line-height: 48px;
 }
 .right-icon{
     font-size: 16px;
@@ -523,7 +689,7 @@ body{
     padding-top: 15px;
 }
 .djs{
-    width: 112px;
+   
 height: 33px;
 font-size: 24px;
 font-family: PingFang-SC-Medium, PingFang-SC;
@@ -562,6 +728,21 @@ line-height: 33px;
 }
 .tabs{
     width: 770px;
+}
+.answer-djs-right{
+  margin-right: 95px;
+  margin-top: 30px;
+}
+.answer-djs-left{
+
+  margin-top: 30px;
+}
+.tab p{
+   margin: 0;
+   font-size: 28px;
+   height: 80px;
+   line-height: 80px;
+   font-weight: bold;
 }
 .tab{
     background: url(../assets/answer_icon_site_none@2x.png) no-repeat;
@@ -685,26 +866,25 @@ line-height: 33px;
   color: #333333;
   line-height: 56px;
   margin-top: 30px;
-  margin-left: 96px;
-  float: left;
+  margin: 0 auto;
 }
 .award-pool-amount{
   margin: 0;
-  width: 96px;
+
   height: 33px;
   font-size: 24px;
   font-family: PingFang-SC-Medium, PingFang-SC;
   font-weight: 500;
   color: #999999;
   line-height: 33px;
-  margin-left: 130px;
 }
 .answer-djs{
-  float: left;
-  margin-left: 190px;
+  float: right;
+
 }
 .answer-djs p{
   margin: 0;
+ 
   float: left;
   height: 56px;
   line-height: 56px;
@@ -715,7 +895,7 @@ line-height: 33px;
 }
 .answer-djs-start{
   clear: both;
-  margin-left: 450px;
+  margin: 0;
   font-size: 24px;
   font-family: PingFang-SC-Medium, PingFang-SC;
   font-weight: 500;

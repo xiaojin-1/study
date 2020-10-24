@@ -21,19 +21,23 @@
               <div class="rank">
                   <div class="information-main">
                        <div class="information-tx">
-                           <img :src=" 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+head" alt="" class="tx">
+                           <img :src="head" alt="" class="tx">
                        </div>
                           <div class="information-name">
                                 <p class="name">{{name}}</p>
-                                    <div class="balance">
+                                    <!-- <div class="balance">
                                         <p class="balance-money">等级:LV.3</p>
-                                     </div>
+                                     </div> -->
                           </div>
-                              <div class="information-rank">
+                              <div class="information-rank" v-if="rank==true">
                                   第{{ranking}}名
                               </div>
+                              <div class="information-rank" v-else>
+                                  未上榜
+                              </div>
+
                   </div>
-                  <div class="rank-list">
+                  <div class="rank-list" >
                       <div class="rank-list-top">
                           <p class="rank-list-ranking rank-list-text">
                               排名
@@ -46,17 +50,22 @@
                           </p>
 
                       </div>
+                      <div style="height:500px">
+ <el-scrollbar id="resultScroll"  ref="myScrollbar" style="height: 100%">
                       <div class="rank-list-con" v-for="(item,index) in tabMain" :key="index">
                           
                           <div class="num"><p :id="numid(index)">{{index+1}}</p></div>
                           <div class="head-portrait">
-                              <div class="head"><img src="../assets/mao.jpg" alt=""></div>
-                              <div class="head-name">{{headname}}</div>
+                              <div class="head"><img :src=" 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+item.head" alt=""></div>
+                              <div class="head-name">{{item.userName}}</div>
                           </div>
                           <div class="rank-money">
-                              {{money}}元
+                              {{item.number}}元
                           </div>
                       </div>
+                      </el-scrollbar>
+                      </div>
+                     
                   </div>
               </div>
            </div>
@@ -76,65 +85,134 @@ export default {
   name: 'ranking',
   data () {
     return {
+      rank:'',
+      token:'',
+      userCode:'',
+      model:'',
+      version:'',
       head:'',
       msg: '排行榜',
-      name: 'Thoth_01',
+      name: '',
       ranking:'129',
       headname:'Thtoh_01',
       money:'213.99',
-      tabMain:[
-          {money:324.12,time:'2020-10-10 16:59:23',state:true},
-          {money:424.12,time:'2020-10-10 17:59:23',state:false},
-          {money:524.12,time:'2020-10-10 18:59:23',state:true},
-          {money:524.12,time:'2020-10-10 18:59:23',state:true},
-          {money:524.12,time:'2020-10-10 18:59:23',state:true},
-          {money:524.12,time:'2020-10-10 18:59:23',state:true},
-          {money:524.12,time:'2020-10-10 18:59:23',state:true}
-      ]
+      resultList: {}, // 接口数据
+      tabMain: [], // 记录列表
+      scrollTop: 0,
+      //tradPageNo: 1, // 当前页
+      tradPageNo:1,
+    //   tabMain:[
+    //       {money:324.12,time:'2020-10-10 16:59:23',state:true},
+    //       {money:424.12,time:'2020-10-10 17:59:23',state:false},
+    //       {money:524.12,time:'2020-10-10 18:59:23',state:true},
+    //       {money:524.12,time:'2020-10-10 18:59:23',state:true},
+    //       {money:524.12,time:'2020-10-10 18:59:23',state:true},
+    //       {money:524.12,time:'2020-10-10 18:59:23',state:true},
+    //       {money:524.12,time:'2020-10-10 18:59:23',state:true}
+    //   ]
     }
   },
   created () {
  
-
+    this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
   },
   mounted () {
-     
+     this.numinfo();
+     var that = this
+     that.getResultList()
+             // 监听滚动事件
+     document.getElementById('resultScroll').addEventListener('scroll', that.handleScroll,true)
  },
   methods: {
+       handleScroll(){
+                var that = this
+                var sh = that.$refs['myScrollbar'].$refs['wrap'].scrollHeight // 滚动条高度
+                var st = that.$refs['myScrollbar'].$refs['wrap'].scrollTop // 滚动条距离顶部的距离
+                var ch = that.$refs['myScrollbar'].$refs['wrap'].clientHeight // 滚动条外容器的高度
+                if (st + ch >= sh) {
+           
+                    //到底了-业务逻辑
+                   
+                    that.tradPageNo += 1
+                    that.getResultList()
+                    // if(that.tradPageNo<=that.resultList.page.totalPage){
+                        
+                    // }
+ 
+ 
+                }
+ 
+            },
+            getResultList() {
+                console.log(11)
+             var that = this
+             var data = {
+                  pageNo: that.tradPageNo,
+                  pageSize: 10
+             };
+             this.$axios.get("/consumer/intelligence/ranking",{
+                    params:data
+                    })
+                     .then(res=>{
+                      //console.log(res,33)
+                       if (res.data.code === 0) {
+                        that.resultList = res.data.data
+                        //console.log(that.resultList)
+                        that.tabMain = that.tabMain.concat(res.data.data)
+                      //  console.log( that.tabMain,1111)
+                    }
+                  })
+
+
+
+
+                // ResultList(data).then(res => {
+                //     if (res.errno === 0) {
+                //         that.resultList = res.result
+                //         that.list = that.list.concat(res.result.list)
+                //     }
+                // })
+            },
+
      numid:function(index){
        return 'numid'+index
      },
     numinfo:function(){
+   
      this.$axios.get("/consumer/intelligence/my_ranking",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       }
      })
     .then(res=>{
-   //  console.log(res,33)
-        this.head = res.data.data.head
-        this.name = res.data.data.name
+     console.log(res,33)
+     if (res.data.data == null){
+         this.rank = false
+     } else {
+         this.rank = true
+          let headimg = res.data.data.head
+        localStorage.setItem('_headimg',headimg)
+        localStorage.getItem('_headimg')
+        this.head = 'https://chuangxue-oss.oss-cn-hangzhou.aliyuncs.com'+ localStorage.getItem('_headimg')
+      //   this.head = res.data.data.head
+        this.name = res.data.data.userName
         this.money = res.data.data.money
-        this.ranking = res.data.data.ranking
-         let secseconds = res.data.data.seconds
-        let min = parseInt(secseconds / 60 % 60)
-        let sec = parseInt(secseconds % 60)
-        min = min > 9 ? min : '0' + min
-        sec = sec > 9 ? sec : '0' + sec
-        if (secseconds == -1){
-          this.secondtime = '00'
-          this.minut = '00'
-        } else {
-          this.secondtime = min
-          this.minut =sec
-        }
-        if (this.nownum <= 0){
-           this.strengthanswer = true
-        }
+        this.ranking = res.data.data.ranking 
+     }
+      
+      
+
     })
     .catch(err=>{
     })
     },
+
+    phblist:function(){
+        
+    }
    },
  
   watch: {
@@ -224,7 +302,6 @@ body{
    width: 716px;
     height: 132px;
     margin: 0 auto;
-    margin-top: 5px;
      border-radius: 10px;
 }
 .rank{
@@ -256,7 +333,7 @@ body{
 .name{
     height: 45px;
     line-height: 45px;
-    margin-top: 27px;
+    margin-top: 40px;
     margin-bottom: 0;
     color: #333;
 }
@@ -284,7 +361,7 @@ font-weight: bold;
 color: #1677FF;
 line-height: 45px;
 margin-top: 44px;
-margin-left: 220px;
+margin-left: 300px;
 }
 .rank-list{
     width: 640px;
@@ -354,7 +431,10 @@ margin-left: 220px;
     margin-right: 20px;
 }
 .head-name{
-    
+    width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     height: 45px;
     font-size: 32px;
     font-family: PingFang-SC-Bold, PingFang-SC;

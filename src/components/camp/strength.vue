@@ -11,7 +11,7 @@
            <p class="disgo-title">({{prompt}}/10)</p>
            <div class="tab-but">
 
-              <p class="tab-but-title"  @click="closeclick()">观看广告补充体力</p>
+              <p class="tab-but-title"  @click="lookclick()">观看广告补充体力</p>
          </div>
       </div>
   </div>
@@ -37,9 +37,17 @@ export default {
      
  },
   methods: {
+     lookclick:function(){
+        this.$bridge.callhandler('getintelligenceProfit', (data) => {
+          alert(321)
+  // 处理返回数据
+        })
+      //  this.$emit('child-strength', false);
+     },
      closeclick:function(){
         this.$emit('child-strength', false);
      }
+
  },
 
   
@@ -95,7 +103,7 @@ export default {
   background: url(../../assets/answer_bt_challenge_default@2x.png) no-repeat;
   background-size: 100%;
   position: absolute;
-  left: 140px;
+  left: 120px;
   bottom: 40px;
 }
 .disgo-text{

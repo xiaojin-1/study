@@ -41,6 +41,10 @@ export default {
  
   data () {
     return {
+        token:'',
+        userCode:'',
+        model:'',
+        version:'',
         msg:'答题结果',
         name:'Thoth_01',
         num:'7',
@@ -50,7 +54,13 @@ export default {
     }
   },
   created () {
+     this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
  this.types = this.$route.query.types
+ this.answerstate = this.$route.query.state
+ this.state = this.$route.query.state
      if (this.types == 1){
        this.num == 7
      }
@@ -72,7 +82,7 @@ export default {
   numinfo:function(){
 this.$axios.get("/consumer/intelligence_question/answer_num_info",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         sessionsType:this.types

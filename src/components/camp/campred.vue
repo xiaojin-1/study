@@ -15,31 +15,47 @@
 </template>
 
 <script>
-
+ 
 export default {
   name: 'grab',
+  props:['prompt'],
   data () {
     return {
-        prompt:'19.5',
+       // prompt:'19.5',
         over: false,
         success:'恭喜你获得'
     }
   },
   created () {
- 
-  
+
+      
   },
   mounted () {
-     
+     // this.lookfinsh();
+   
+
  },
   methods: {
      closeclick:function(){
          console.log(111)
         this.$emit('child-grab', false);
      },
+  
      lookclick:function(){
-       
-     }
+      // alert(1)
+       this.$bridge.callhandler('getTrainingProfit', '1',(data) => {
+         // alert(321)
+  // 处理返回数据
+        })
+      
+     },
+
+
+
+
+
+
+
  },
 
   
@@ -48,7 +64,10 @@ export default {
  },
     computed: {
     }
+    
 }
+
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

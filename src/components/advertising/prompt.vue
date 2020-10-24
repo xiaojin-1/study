@@ -9,7 +9,7 @@
            <p class="disgo-text" v-else>{{success}}</p>
            <p class="disgo-title">广告观看进度：{{prompt}}</p>
            <div class="tab-but">
-              <p class="tab-but-title" v-if="state==0">观看广告</p>
+              <p class="tab-but-title" v-if="state==0" @click="promptclick()">观看广告</p>
               <p class="tab-but-title"  @click="closeclick()" v-else>确定</p>
          </div>
       </div>
@@ -23,6 +23,10 @@ export default {
   props:['title'],
   data () {
     return {
+        token:'',
+        userCode:'',
+        model:'',
+        version:'',
         prompt:'',
         state: ' ',
         gg:'观看广告参加有奖答题',
@@ -30,19 +34,29 @@ export default {
     }
   },
   created () {
- 
+    this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
+
+    
+
+
+
   },
   mounted () {
      this.signup()
+
  },
   methods: {
      closeclick:function(){
         this.$emit('child-event', false);
      },
      signup:function(){
+     // alert(this.token,999)
       this.$axios.get("/consumer/intelligence/sign_up",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         type:this.title
@@ -52,13 +66,19 @@ export default {
       let state = res.data.data.status
       this.state = state
       this.prompt = res.data.data.adSchedule
-        console.log(res,1111)
+     //   console.log(res,1111)
     })
     .catch(err=>{
 
       // console.log(err)
 
     })
+     },
+     promptclick:function(){
+        this.$bridge.callhandler('getpromptProfit',this.title, (data) => {
+         // alert(321)
+  // 处理返回数据
+        })
      }
  },
 

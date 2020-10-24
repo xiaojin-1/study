@@ -10,7 +10,7 @@
            <div class="tab-but"  @click="grabclick()">
               <p class="tab-but-title">确定领取</p>
            </div>
-           <p class="golook">前去查看 ></p>
+           <p class="golook" @click="lookclick()">前去查看 ></p>
       </div>
   </div>
 </template>
@@ -22,23 +22,30 @@ export default {
   props:['title'],
   data () {
     return {
+        token:'',
+        userCode:'',
+        model:'',
+        version:'',
         prompt:'19.5',
         over: false,
         success:'恭喜你获得'
     }
   },
   created () {
- 
+    this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
   
   },
   mounted () {
-     
+     this.grabshow();
  },
   methods: {
      grabclick:function(){
         this.$axios.get("/consumer/intelligence/receive_profit",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         sessionsType:this.title
@@ -46,10 +53,37 @@ export default {
      })
     .then(res=>{
      console.log(res,33)
+     this.$emit('child-grab', false);
        
     })
     .catch(err=>{
     })
+     },
+     grabshow:function(){
+       this.$axios.get("/consumer/intelligence/my_profit",{
+       headers: {
+        token: 'cc349aa7d6c748ffaf229cac4f96c976'
+      },
+      params:{
+        sessionsType:this.title
+      }
+     })
+    .then(res=>{
+      console.log(res,33)
+      this.prompt = res.data.data
+     
+    
+       
+    })
+    .catch(err=>{
+    })
+     },
+    lookclick:function(){
+       this.$emit('child-grab', false);
+        this.$bridge.callhandler('grablookclick', (data) => {
+         // alert(321)
+  // 处理返回数据
+        })
      }
  },
 

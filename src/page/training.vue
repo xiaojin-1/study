@@ -1,5 +1,5 @@
 <template>
-<div>
+<div style="background:#1677FF;height:100%">
 
 
 <div class="main-mc" v-show="showmc == true">
@@ -39,7 +39,7 @@
                 </div>
             </div>
       </div>
-      <div class="cir"></div>
+      <div class="cir">
       <div id="countdown" v-show="countdowndjs == true">
     <svg
          :width="size"
@@ -65,6 +65,7 @@
     </svg>
     <span>{{ countdown }}</span>
   </div>
+  </div>
   <div class="wrong-answer" v-show="wrong">
       <div class="wrong-circle">
           <img src="../assets/answer_icon_error_result@2x.png" alt="">
@@ -83,12 +84,13 @@
                  <p class="main-title" v-bind:class="{active1:ind==isActive1}" @click="check(ite,ind)">{{ite}}</p>
                  <img class="answersure" v-bind:class="{sureactive:ind==sureisActive}" src="../assets/answer_icon_eorrect_sel@2x.png"  alt="">
                  <img class="answerfalse" v-bind:class="{falseactive:ind==isfalseActive}" src="../assets/answer_icon_error_sel@2x.png" alt="">
+                 <div class="mcshow" v-show="mcshow == true"></div>
              </div>
         </div>
       </div>
     </div>
       <div>
-        <campred  @child-event='parentEvent' v-if="advertising"></campred>
+        <campred  @child-event='parentEvent' :prompt="prompt" v-if="advertising"></campred>
       </div>
       <div>
         <strength  @child-strength='strengthEvent' v-if="strengthanswer"></strength>
@@ -100,6 +102,7 @@
 </template>
 
 <script>
+
 import campred from '@/components/camp/campred';
 import readval from '@/components/camp/readval';
 import strength from '@/components/camp/strength';
@@ -112,6 +115,12 @@ export default {
   },
   data () {
     return {
+      prompt:'',//现金金额
+      token:'',
+      userCode:'',
+      model:'',
+      version:'',
+      mcshow:'',
       readvalanswer:false,
       strengthanswer:false,
       advertising:false,
@@ -139,31 +148,68 @@ export default {
       countdowndjs:true,
       wrong:false,
       correct:false,
-      title:'世界杯足球比赛每几年举行一次？',
+      title:'',
       solution:2,
       isActive:'-1',
       isActive1:'-1',
       isfalseActive:'-1',
       sureisActive:'-1',
-      answer: {0:'一年',1:'两年',2:'三年'},//选项
+      answer: {},//选项
       runTime:null
     }
   },
   created () {
- 
+    
+    this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
+    this.$bridge.registerhandler('lookgetTrainingfinsh', (data, responseCallback) => {
+          // console.log('lookgetTrainingfinsh')  
+          // console.log(this.advertising = false)
+          if (data==1){
+           this.advertising = false
+           this.readvalanswer = false
+           this.strengthanswer = false
+           this.wrong = false
+           this.correct = false
+           this.countdowndjs = true
+           this.numinfo();
+           this.move();
+          } 
+          
+           responseCallback(data)
 
+        })
+        this.$bridge.registerhandler('lookintelligencefinsh', (data, responseCallback) => {
+          if(data=1){
+           this.open();
+           this.strengthanswer = false
+           this.wrong = false
+           this.correct = false
+           this.countdowndjs = true
+           this.numinfo();
+           this.move();
+          }
+          
+           responseCallback(data)
+        })
   },
   mounted () {
     //this.djs();
-    this.question();
+  //  alert(1)
+     this.numinfo();
      this.add();
+     //this.lookfinsh();
      //this.numinfo();
     // this.count();
  },
   methods: {
     parentEvent(data){
       this.advertising = false
-     
+      this.wrong = false
+      this.correct = false
+      this.move()
      // this.animate();
     },
  
@@ -174,8 +220,13 @@ export default {
     },
     readvalEvent(data){
       this.readvalanswer = data
-      this.question();
-      this.add();
+      this.wrong = false
+      this.correct = false
+      this.countdowndjs = true
+      // this.percentage = 100
+      this.numinfo();
+     // this.add();
+       this.move()
     },
      num1: function (n) {
         return n < 10 ? '0' + n : '' + n
@@ -249,6 +300,7 @@ export default {
       }, 10)
     },
      djsover:function(){
+         this.mcshow = true
       this.$axios.post("/consumer/intelligence_question/answer",{
       
         questionId:this.questionId,
@@ -257,7 +309,7 @@ export default {
         sessionsType:this.types
      })
     .then(res=>{
-      console.log(res,5555)
+     // console.log(res,5555)
       let remedyNum = res.data.data.remedyNum   // 补救次数
       let advertising = res.data.data.status
       let rightAnswer = res.data.data.rightAnswer
@@ -265,6 +317,8 @@ export default {
       this.index = res.data.data.answerNum   //剩余问题次数
       let fineStatus = res.data.data.answerNum //是否获得场次奖励
       let jltype = res.data.data.type   //奖励类型
+      let prompt = res.data.data.number   //现金金额
+      this.prompt = prompt
 //       if (this.index <= 0){
 // if (fineStatus == 1){
 //           //this.
@@ -282,8 +336,10 @@ export default {
         // } else {
         if (jltype == 1){
              this.readvalanswer = true
+              this.stop()
         } else if (jltype == 2){
              this.advertising = true
+             this.stop()
         } else if(jltype == null){
         if (advertising == 0 ){
          this.isActive = rightAnswer
@@ -291,7 +347,7 @@ export default {
          this.wrong = true
          this.countdowndjs = false
          setTimeout(() => {
-          this.question();
+          this.numinfo();
          //  this.sureisActive = '-1'
            this.advertisiang = 0
            this.wrong = false
@@ -334,6 +390,7 @@ export default {
     check: function(ite,ind){
     //  console.log(ite,ind,333333)
      // let obj = []
+     this.mcshow = true
       this.percentage = 0;
       clearInterval(this.runTime);
       let answer = ind
@@ -353,12 +410,42 @@ export default {
       let challengeStatus = res.data.data.challengeStatus //挑战成功或失败
       this.index = res.data.data.answerNum   //  剩余题目
       let fineStatus = res.data.data.answerNum //是否获得场次奖励
-      let jltype = res.data.data.type   //奖励类型
-      
+      let jltype = res.data.data.type  //奖励类型  res.data.data.type
+      let prompt = res.data.data.number   //现金金额
+      this.prompt = prompt
        if (jltype == 1){
+           
            this.readvalanswer = true
+            if (advertising == 0 ){
+         this.isActive1 = ind
+         this.isActive = rightAnswer
+         this.isfalseActive = ind
+         this.sureisActive = rightAnswer
+         this.wrong = true
+         this.countdowndjs = false
+      } else {
+        this.isActive = ind
+        this.sureisActive = ind
+        this.correct = true
+        this.countdowndjs =false
+      }
+           this.stop()
         } else if (jltype == 2){
+      //        if (advertising == 0 ){
+      //    this.isActive1 = ind
+      //    this.isActive = rightAnswer
+      //    this.isfalseActive = ind
+      //    this.sureisActive = rightAnswer
+      //    this.wrong = true
+      //    this.countdowndjs = false
+      // } else {
+      //   this.isActive = ind
+      //   this.sureisActive = ind
+      //   this.correct = true
+      //   this.countdowndjs =false
+      // }
            this.advertising = true
+           this.stop()
         } else if (jltype == null){
  if (advertising == 0 ){
         //   console.log(ind,rightAnswer)
@@ -368,17 +455,10 @@ export default {
          this.sureisActive = rightAnswer
          this.wrong = true
          this.countdowndjs = false
-         //this.question()
-        // this.sureisActive =this.solution
+
          setTimeout(() => {
-          //  if (_len == 1){
-          //    this.failsanswer = true
-          //  } else {
-            
-          //  //this.seconds = 10
-          // //  this.animate();      
-          //  }
-           this.question()
+        
+           this.numinfo()
            this.wrong = false
            this.countdowndjs = true
            
@@ -393,94 +473,12 @@ export default {
         setTimeout(() => {
           this.countdowndjs =true
           this.correct = false
-           this.question()
+           this.numinfo()
           // this.seconds = 10
           //  this.animate();
-        }, 500)
+        }, 2000)
       }
         }
-      // if (this.index <= 0){
-      //   if (fineStatus == 1){
-      //     //this.
-      //     this.$router.push({ path: 'cross', query: { types: this.types}})
-      //   } else {
-      //     this.$router.push({ path: 'cross', query: { types: this.types}})
-      //   }
-        
-      // } else {
-     //   if(challengeStatus == 1){
-       // this.obj.push(challengeStatus)
-     //   let _len = this.obj.length
-        //console.log(this.obj,_len,67)
-        
-    //  } 
-    //   else {
-    //     if (advertising == 0 ){
-    //      this.isActive1 = ind
-    //      this.isActive = rightAnswer
-    //      this.isfalseActive = ind
-    //      this.sureisActive = rightAnswer
-    //      this.wrong = true
-    //      this.countdowndjs = false
-    //     // this.sureisActive =this.solution
-    //      setTimeout(() => {
-    //        this.advertising = 0
-    //        this.wrong = false
-    //        this.countdowndjs = true
-           
-    //     }, 2000)
-        
-    //   } else {
-    //     this.isActive = ind
-    //     this.sureisActive = ind
-    //     this.correct = true
-    //     this.countdowndjs =false
-    //     setTimeout(() => {
-    //       this.countdowndjs =true
-    //       this.correct = false
-    //        this.question()
-    //      //  this.seconds = 10
-    //       //  this.animate();
-    //     }, 2000)
-    //    }
-    //  }
-      //   if(remedyNum == 0 && this.index == 0){
-      //    this.failsanswer = true
-      // } else {
-      //   if (advertising == 0 ){
-      //    this.isActive1 = ind
-      //    this.isActive = rightAnswer
-      //    this.isfalseActive = ind
-      //    this.sureisActive = rightAnswer
-      //    this.wrong = true
-      //    this.countdowndjs = false
-      //   // this.sureisActive =this.solution
-      //    setTimeout(() => {
-      //      this.advertising = 0
-      //      this.wrong = false
-      //      this.countdowndjs = true
-           
-      //   }, 2000)
-        
-      // } else {
-      //   this.isActive = ind
-      //   this.sureisActive = ind
-      //   this.correct = true
-      //   this.countdowndjs =false
-      //   setTimeout(() => {
-      //     this.countdowndjs =true
-      //     this.correct = false
-      //      this.question()
-      //    //  this.seconds = 10
-      //     //  this.animate();
-      //   }, 2000)
-      //  }
-      // }
-    
-
-     // }
-      
-      //  console.log(res)
     })
     .catch(err=>{
     })
@@ -488,7 +486,8 @@ export default {
       
     },
      question:function(){
-      this.numinfo();
+       this.mcshow = false;
+    //  this.numinfo();
     this.percentage = 100
     this.isActive1 = '-1'
     this.isfalseActive = '-1'
@@ -497,19 +496,20 @@ export default {
     let _this = this;
      this.$axios.get("/consumer/intelligence_question/question",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         type:2
       }
      })
     .then(res=>{
-     console.log(res,8)
+      console.log(res)
+    // alert(res)
        _this.title = res.data.data.title
        _this.questionId = res.data.data.id
        let ret = res.data.data.options
         let retJSON = JSON.parse(ret)
-        console.log(res,ret,retJSON)
+      //  console.log(res,ret,retJSON)
          _this.answer = retJSON
         _this.animate();
     })
@@ -529,17 +529,17 @@ export default {
      numinfo:function(){
      this.$axios.get("/consumer/intelligence/main_info",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       }
      })
     .then(res=>{
-   //  console.log(res,33)
+      //  console.log(res,33)
         this.head = res.data.data.head
         this.name = res.data.data.name
         this.head = res.data.data.head
         this.money = res.data.data.money
         this.nownum = res.data.data.power
-         let secseconds = res.data.data.seconds
+        let secseconds = res.data.data.seconds
         let min = parseInt(secseconds / 60 % 60)
         let sec = parseInt(secseconds % 60)
         min = min > 9 ? min : '0' + min
@@ -551,8 +551,12 @@ export default {
           this.secondtime = min
           this.minut =sec
         }
-        if (this.nownum <= 0){
+        if (this.nownum == 0){
+           this.stop();
            this.strengthanswer = true
+          // return
+        } else {
+          this.question();
         }
     })
     .catch(err=>{
@@ -561,7 +565,7 @@ export default {
     profit:function(){
       this.$axios.get("/consumer/intelligence_question/get_training_profit",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       }
      })
     .then(res=>{
@@ -587,12 +591,39 @@ export default {
     .catch(err=>{
     })
     },
-    
+//     lookfinsh:function(){
+//      let _this = this;
+// setupWebViewJavascriptBridge(function(bridge) {
+// bridge.registerHandler('lookgetTrainingfinsh', function(data, responseCallback) {
+
+//   _this.advertising = false
+//   responseCallback(data)
+  
+// })
+// })
+
+// },
+ open() {
+        this.$message('+5体力值');
+      },
     backclick:function(){
-      this.giveupanswer = true
+       this.percentage = 0;
+      clearInterval(this.runTime);
+      //this.$router.push('/')
+      history.back(-1);
+
+      //this.giveupanswer = true
      
       
-    }
+    },
+    stop(){//禁止滑动限制
+  document.body.style.overflow='hidden';
+
+},
+move(){//取消滑动限制
+document.body.style.overflow='';
+
+   },
 
   
    },
@@ -638,10 +669,14 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+#app{
+  height: 100%;
+}
 .hello{
   margin: 0 auto;
   width: 750px;
-  height: 1334px;
+  height: 100%;
+  background: #1677FF;
 }
 .main-con{
   height: 1206px;
@@ -808,15 +843,14 @@ text-align: center;
 }
 .main{
     width: 690px;
-    height: 853px;
+    min-height: 553px;
     background: #FFFFFF;
     border-radius: 40px;
     margin: 0 auto;
     margin-top: 105px;
+    padding-bottom: 20px;
 }
 .main-text{
-    
-    height: 45px;
     font-size: 32px;
     font-family: PingFang-SC-Bold, PingFang-SC;
     font-weight: bold;
@@ -891,8 +925,10 @@ font-weight: 500;
 #countdown {
   display: inline-block;
   position: absolute;
-  left: 315px;
-  top: 194px
+  left: 50%;
+  margin-left: -29px;  /* no */
+  top: 3px  /* no */
+  
 }
 
 #countdown span {
@@ -915,10 +951,12 @@ font-weight: 500;
 }
 .wrong-answer img{
   position: absolute;
-  width: 40px;
-  height: 40px;
-  top: 35px;
-  left: 35px;
+  width: 58px;   /* no */
+  height: 58px;   /* no */
+  top: 3px;   /* no */
+  left: 50%;
+  margin-left: -29px;  /* no */
+  
 }
 .correct-answer{
    width: 110px;
@@ -931,19 +969,21 @@ font-weight: 500;
 }
 .correct-answer img{
   position: absolute;
-  width: 40px;
-  height: 40px;
-  top: 35px;
-  left: 35px;
+  width: 58px;   /* no */
+  height: 58px;   /* no */
+  top: 3px;   /* no */
+  left: 50%;
+  margin-left: -29px;  /* no */
 }
 .cir{
-  width: 148px;
-  height: 148px;
-  border-radius: 74px;
+  width: 64px;  /*no*/
+  height: 64px;  /*no*/
+  border-radius: 62px;  /*no*/
   background: #fff;
   position: absolute;
-  left: 301px;
-  top: 180px;
+  left: 50%;
+  margin-left: -37px;  /*no*/
+  top: 180px;  
 }
 .active .main-title{
   color: #fff;
@@ -976,5 +1016,14 @@ font-weight: 500;
 }
 .falseactive{
   display: block;
+}
+.mcshow{
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 520px;
+  height: 110px;
+  z-index: 2222;
 }
 </style>

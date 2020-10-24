@@ -77,7 +77,7 @@ export default {
 <style scoped>
 .prompt{
     width: 750px;
-    height: 1334px;
+    height: 100%;
      position: fixed;
     top: 0;
     left: 0;
@@ -85,7 +85,7 @@ export default {
 }
 .prompt-mc{
     width: 750px;
-    height: 1512px;
+    height: 100%;
     overflow: hidden;
     background: #000000;
     opacity: 0.5;

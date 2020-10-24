@@ -71,15 +71,16 @@
                  <p class="main-title" v-bind:class="{active1:ind==isActive1}" @click="check(ite,ind)">{{ite}}</p>
                  <img class="answersure" v-bind:class="{sureactive:ind==sureisActive}" src="../assets/answer_icon_eorrect_sel@2x.png"  alt="">
                  <img class="answerfalse" v-bind:class="{falseactive:ind==isfalseActive}" src="../assets/answer_icon_error_sel@2x.png" alt="">
+                 <div class="mcshow" v-show="mcshow == true"></div>
              </div>
         </div>
       </div>
     </div>
       <div v-show="wrongshow">
-        <wrong  @child-event='parentEvent' :question="questionId" v-if="advertising == 0"></wrong>
+        <wrong  @child-event='parentEvent' :title="types" :question="questionId" v-if="advertising == 0"></wrong>
       </div>
       <div >
-        <giveup  @child-give='giveupEvent' :title="index" v-if="giveupanswer"></giveup>
+        <giveup  @child-give='giveupEvent' :title="types" v-if="giveupanswer"></giveup>
       </div>
        <div v-show="fail">
         <fails  @child-fails='failsEvent' :title="index" :types="types" v-if="failsanswer"></fails>
@@ -101,8 +102,13 @@ export default {
   },
   data () {
     return {
+      token:'',
+      userCode:'',
+      model:'',
+      version:'',
+      mcshow:false,
       obj:[],
-      types:'',
+      types:'',  //场次
       fail:true,
       wrongshow:true,
       failsanswer:false,
@@ -133,18 +139,35 @@ export default {
       isActive1:'-1',
       isfalseActive:'-1',
       sureisActive:'-1',
-      answer:               //选项
-          {},
+      answer: {},              //选项
       runTime:null
     }
   },
   created () {
-  this.types = this.$route.query.types
+    this.types = this.$route.query.types
+    this.token = this._token();
+    this.userCode = this._userCode();
+    this.model = this._model();
+    this.version = this._version();
+     this.$bridge.registerhandler('lookgetremedyfinsh', (data, responseCallback) => {
+          // console.log('lookgetTrainingfinsh')  
+          // console.log(this.advertising = false)
+          if (data==1){
+           this.wrong = false
+           this.question();
+           //this.add();
+           //this.ggtab();
+         //  this.move();
+          } 
+          
+           responseCallback(data)
+
+        })
 //console.log(this.$route.query.types,9)
   },
   mounted () {
      this.djs();
-   
+     this.numinfo();
      
     //  this.animate()
  },
@@ -166,11 +189,14 @@ export default {
       this.giveupanswer = data
       this.giveupstate = data
        if (this.giveupstate == true){
+         this.percentage = 0;
+      clearInterval(this.runTime);
           history.back(-1);
           this.giveupanswer =false
-      } else {
-        this.question()
       }
+      //  else {
+      //   this.question()
+      // }
     },
     failsEvent(data){
       this.failsanswer = data
@@ -183,6 +209,8 @@ export default {
       //this.check();
       //this.failanswer();
       if (this.giveupstate == true){
+         this.percentage = 0;
+         clearInterval(this.runTime);
           history.back(-1);
           this.failsanswer =false
       } else {
@@ -208,7 +236,7 @@ export default {
      },
      animate() {
       // console.log(this.timer,1111)
-      console.log(this.seconds,456);
+     // console.log(this.seconds,456);
       let _this = this;
       this.runTime = setInterval(() => {    
         if(_this.percentage > 0){
@@ -235,6 +263,7 @@ export default {
       }, 10)
     },
     djsover:function(){
+      this.mcshow = true;
       this.$axios.post("/consumer/intelligence_question/answer",{
       
         questionId:this.questionId,
@@ -243,7 +272,7 @@ export default {
         sessionsType:this.types
      })
     .then(res=>{
-      console.log(res,5555)
+     // console.log(res,5555)
       let remedyNum = res.data.data.remedyNum   // 补救次数
       let advertising = res.data.data.status
       let rightAnswer = res.data.data.rightAnswer
@@ -258,7 +287,7 @@ if (fineStatus == 1){
           this.$router.push({ path: 'cross', query: { types: this.types}})
         }
       } else {
-if (challengeStatus == 1){
+        if (challengeStatus == 1){
         this.obj.push(challengeStatus)
         let _len = this.obj.length
         if (_len == 1){
@@ -313,7 +342,9 @@ if (challengeStatus == 1){
     check: function(ite,ind){
     //  console.log(ite,ind,333333)
      // let obj = []
-      this.seconds = 0;
+     this.mcshow = true;
+     this.percentage = 0;
+     // this.seconds = 0;
       clearInterval(this.runTime);
       let answer = ind
       this.$axios.post("/consumer/intelligence_question/answer",{
@@ -324,7 +355,8 @@ if (challengeStatus == 1){
      })
     .then(res=>{
       console.log(res,7)
-      this.seconds = 0;
+      this.percentage = 0;
+     // this.seconds = 0;
       clearInterval(this.runTime);
       let remedyNum = res.data.data.remedyNum   // 补救次数
       let advertising = res.data.data.status  //答题错误
@@ -332,10 +364,10 @@ if (challengeStatus == 1){
       let challengeStatus = res.data.data.challengeStatus //挑战成功或失败
       this.index = res.data.data.answerNum   //  剩余题目
       let fineStatus = res.data.data.answerNum //是否获得场次奖励
-      if (this.index <= 0){
-        if (fineStatus == 1){
+      if (this.index == 0){
+        if (fineStatus == 1){   //获得场次奖励
           //this.
-          this.$router.push({ path: 'cross', query: { types: this.types}})
+          this.$router.push({ path: 'cross', query: { types: this.types,state:true}})
         } else {
           this.$router.push({ path: 'cross', query: { types: this.types}})
         }
@@ -455,8 +487,10 @@ if (challengeStatus == 1){
       
     },
     question:function(){
+      this.mcshow = false;
       this.numinfo();
-    this.seconds = 10
+      this.percentage = 100
+    //this.seconds = 10
     this.isActive1 = '-1'
     this.isfalseActive = '-1'
     this.isActive = '-1'
@@ -464,7 +498,7 @@ if (challengeStatus == 1){
     let _this = this;
      this.$axios.get("/consumer/intelligence_question/question",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         sessionsType:this.types,
@@ -496,7 +530,7 @@ if (challengeStatus == 1){
     numinfo:function(){
 this.$axios.get("/consumer/intelligence_question/answer_num_info",{
        headers: {
-        token: '8993a1b041d54563af134e0493746708'
+        token: this.token
       },
       params:{
         sessionsType:this.types
@@ -546,7 +580,8 @@ this.$axios.get("/consumer/intelligence_question/answer_num_info",{
 .hello{
   margin: 0 auto;
   width: 750px;
-  height: 1334px;
+  height: 100%;
+  background: #1677FF;
 }
 .main-con{
   height: 1206px;

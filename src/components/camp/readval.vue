@@ -30,18 +30,22 @@ export default {
     }
   },
   created () {
- 
+     let _this = this;
   
   },
   mounted () {
-     
+  
+
  },
   methods: {
      closeclick:function(){
         this.$emit('child-readval', false);
      },
      lookclick:function(){
-       
+         this.$bridge.callhandler('getTrainingProfit','2', (data) => {
+          alert(321)
+  // 处理返回数据
+        })
      }
  },
 
@@ -51,7 +55,10 @@ export default {
  },
     computed: {
     }
+
+    
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -98,7 +105,7 @@ export default {
   background: url(../../assets/answer_bt_challenge_default@2x.png) no-repeat;
   background-size: 100%;
   position: absolute;
-  left: 140px;
+  left: 120px;
   bottom: 47px;
 }
 .disgo-text{

@@ -23,14 +23,15 @@
 
 export default {
   name: 'giveup',
-
+  props:['title'],
   data () {
     return {
+      token:'',
       wrong:'放弃答题您将损失 丰厚奖励哦！'
     }
   },
   created () {
- 
+  this.token = this._token();
   
   },
   mounted () {
@@ -44,8 +45,14 @@ export default {
     
      giveup:function(){
          console.log(22)
-         this.$axios.post("/consumer/intelligence_question/give_up",{
-        sessionsType:this.types,
+         this.$axios.get("/consumer/intelligence_question/give_up",{
+     headers: {
+        token: this.token // localStorage.getItem('_token')  //this.token
+      },
+      params:{
+        sessionsType:this.title,
+      }
+    
      })
     .then(res=>{
      // console.log(res,7777)
@@ -75,7 +82,7 @@ export default {
 <style scoped>
 .prompt{
     width: 750px;
-    height: 1334px;
+    height: 100%;
      position: fixed;
     top: 0;
     left: 0;
@@ -83,7 +90,7 @@ export default {
 }
 .prompt-mc{
     width: 750px;
-    height: 1512px;
+    height: 100%;
     overflow: hidden;
     background: #000000;
     opacity: 0.5;
