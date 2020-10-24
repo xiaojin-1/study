@@ -294,26 +294,26 @@ export default {
         if (challengeStatus == 1){
         this.obj.push(challengeStatus)
         let _len = this.obj.length
-        if (_len == 1){
-           this.failsanswer = true
+          if (_len == 1){
+             this.failsanswer = true
 
-        } else {
+          } else {
 
-         if (advertising == 0 ){
-         this.isActive = rightAnswer
-         this.sureisActive = rightAnswer
-         this.wrong = true
-         this.countdowndjs = false
-         setTimeout(() => {
-          this.question();
-         //  this.sureisActive = '-1'
-           this.advertisiang = 0
-           this.wrong = false
-           this.countdowndjs = true
-        }, 2000)
-      }
-      }
+           if (advertising == 0 ){
 
+           this.isActive = rightAnswer
+           this.sureisActive = rightAnswer
+           this.wrong = true
+           this.countdowndjs = false
+           setTimeout(() => {
+            this.question();
+           //  this.sureisActive = '-1'
+             this.advertisiang = 0
+             this.wrong = false
+             this.countdowndjs = true
+          }, 2000)
+        }
+        }
       } else {
       //  if (remedyNum == 0 && this.index <= 0){
       //     this.failsanswer = true
